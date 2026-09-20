@@ -22,6 +22,7 @@ export interface OrderConfirmationState {
   customerAddress: string;
   deliveryCharge: number;
   items: ConfirmationItem[];
+  orderDate?: string;
 }
 
 const OrderConfirmationPage = () => {

@@ -46,11 +46,17 @@ export function generateInvoicePDF(state: OrderConfirmationState): void {
   doc.setTextColor(20, 27, 45);
   doc.text(`Order: ${orderNumStr}`, pageWidth - margin, 25, { align: "right" });
 
-  const todayStr = new Date().toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  const todayStr = state.orderDate
+    ? new Date(state.orderDate).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : new Date().toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);

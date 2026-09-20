@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Package, MapPin, Phone, User, Clock, XCircle, CheckCircle2 } from "lucide-react";
+import { Search, Package, MapPin, Phone, User, Clock, XCircle, CheckCircle2, FileDown, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDeliveryCharges } from "@/hooks/useDeliveryCharges";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import { generateInvoicePDF } from "@/lib/invoiceGenerator";
 
 const STAGES = ["Pending", "Confirmed", "Processing", "Shipped", "Delivered"] as const;
 
@@ -32,8 +33,44 @@ const TrackOrderPage = () => {
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const { toast } = useToast();
   const { data: charges } = useDeliveryCharges();
+
+  const handleDownloadInvoice = (order: Order) => {
+    try {
+      setDownloadingId(order.id);
+      const deliveryCharge = Number(order.delivery_charge) || 0;
+      const totalAmount = Number(order.total_price) || 0;
+      const itemSubtotal = Math.max(0, totalAmount - deliveryCharge);
+      const qty = Math.max(1, Number(order.quantity) || 1);
+      const unitPrice = Math.round(itemSubtotal / qty);
+
+      generateInvoicePDF({
+        orderNumbers: [order.order_number],
+        customerName: order.name,
+        customerPhone: order.phone,
+        customerAddress: order.address,
+        deliveryCharge,
+        items: [
+          {
+            productName: order.product,
+            variant: order.variant,
+            quantity: qty,
+            price: unitPrice,
+          },
+        ],
+        orderDate: order.created_at,
+      });
+
+      toast({ title: "Invoice downloaded successfully!" });
+    } catch (err) {
+      console.error("Failed to generate invoice:", err);
+      toast({ title: "Could not generate invoice", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,12 +217,29 @@ const TrackOrderPage = () => {
               <div className="lg:col-span-2 space-y-6">
                 {/* Order Summary Card */}
                 <div className="bg-card border border-border rounded-xl p-6">
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start justify-between mb-4 flex-wrap gap-3">
                     <div>
                       <p className="font-body text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-1">Order Number</p>
                       <p className="font-body text-[14px] font-bold text-foreground">#{selectedOrder.order_number}</p>
                     </div>
-                    <StatusBadge status={selectedOrder.status} />
+                    <div className="flex items-center gap-2.5">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownloadInvoice(selectedOrder)}
+                        disabled={downloadingId === selectedOrder.id}
+                        className="border-gold/40 text-gold hover:bg-gold/10 hover:text-gold text-xs h-8 px-3 gap-1.5 transition-colors font-body"
+                        title="Download invoice as PDF"
+                      >
+                        {downloadingId === selectedOrder.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <FileDown className="w-3.5 h-3.5" />
+                        )}
+                        Invoice (PDF)
+                      </Button>
+                      <StatusBadge status={selectedOrder.status} />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
