@@ -1,0 +1,4 @@
+project_id = "pwgdmpeheqzbxyvsrthe"
+
+[functions.place-order-gmail]
+verify_jwt = false

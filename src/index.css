@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Jost:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Black / Gold / Silver luxury theme */
+    --background: 0 0% 5%;
+    --foreground: 40 25% 92%;
+
+    --card: 0 0% 8%;
+    --card-foreground: 40 25% 92%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 40 25% 92%;
+
+    /* Primary = champagne gold */
+    --primary: 42 55% 60%;
+    --primary-foreground: 0 0% 6%;
+
+    --secondary: 0 0% 11%;
+    --secondary-foreground: 40 25% 92%;
+
+    --muted: 0 0% 13%;
+    --muted-foreground: 40 8% 65%;
+
+    /* Accent = silver */
+    --accent: 40 6% 78%;
+    --accent-foreground: 0 0% 6%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 42 18% 18%;
+    --input: 0 0% 13%;
+    --ring: 42 55% 60%;
+
+    --radius: 0.125rem;
+
+    /* Gold + silver palette */
+    --gold: 42 60% 60%;
+    --gold-light: 44 72% 75%;
+    --gold-deep: 38 55% 42%;
+    --silver: 40 6% 78%;
+    --silver-deep: 40 4% 55%;
+    --onyx: 0 0% 2%;
+    --charcoal: 0 0% 10%;
+    --cream: 40 30% 92%;
+    --warm-gray: 40 5% 55%;
+    --peach: 42 55% 60%;
+
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 40 25% 92%;
+    --sidebar-primary: 42 55% 60%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 0 0% 11%;
+    --sidebar-accent-foreground: 40 25% 92%;
+    --sidebar-border: 42 18% 18%;
+    --sidebar-ring: 42 55% 60%;
+  }
+
+  .dark {
+    --background: 0 0% 5%;
+    --foreground: 40 25% 92%;
+    --card: 0 0% 8%;
+    --card-foreground: 40 25% 92%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 40 25% 92%;
+    --primary: 42 55% 60%;
+    --primary-foreground: 0 0% 6%;
+    --secondary: 0 0% 11%;
+    --secondary-foreground: 40 25% 92%;
+    --muted: 0 0% 13%;
+    --muted-foreground: 40 8% 65%;
+    --accent: 40 6% 78%;
+    --accent-foreground: 0 0% 6%;
+    --destructive: 0 62.8% 40%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 42 18% 18%;
+    --input: 0 0% 13%;
+    --ring: 42 55% 60%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Jost', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 { font-family: 'Cormorant Garamond', serif; }
+}
+
+@layer utilities {
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  .animate-marquee { animation: marquee 40s linear infinite; }
+
+  .hairline { border-color: hsl(var(--gold) / 0.18); }
+
+  .font-display { font-family: 'Cormorant Garamond', serif; }
+  .font-body { font-family: 'Jost', sans-serif; }
+
+  .text-gold { color: hsl(var(--gold)); }
+  .text-gold-light { color: hsl(var(--gold-light)); }
+  .text-silver { color: hsl(var(--silver)); }
+
+  .bg-gold { background-color: hsl(var(--gold)); }
+  .bg-gold-light { background-color: hsl(var(--gold-light)); }
+  .bg-peach { background-color: hsl(var(--peach)); }
+  .bg-cream { background-color: hsl(var(--cream)); }
+  .bg-onyx { background-color: hsl(var(--onyx)); }
+  .bg-charcoal { background-color: hsl(var(--charcoal)); }
+  .bg-silver { background-color: hsl(var(--silver)); }
+
+  .border-gold { border-color: hsl(var(--gold)); }
+
+  .gradient-luxury {
+    background: linear-gradient(180deg, hsl(var(--onyx)), hsl(var(--charcoal)) 60%, hsl(var(--background)));
+  }
+
+  .gradient-gold {
+    background: linear-gradient(135deg, hsl(38 55% 42%), hsl(44 72% 75%) 50%, hsl(38 55% 42%));
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, hsl(44 80% 78%), hsl(42 65% 55%) 50%, hsl(38 55% 42%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .text-gradient-silver {
+    background: linear-gradient(135deg, hsl(0 0% 100%), hsl(40 6% 78%) 50%, hsl(40 4% 55%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .shadow-luxury {
+    box-shadow: 0 8px 32px -8px hsl(0 0% 0% / 0.7), 0 2px 8px -2px hsl(0 0% 0% / 0.5);
+  }
+  .shadow-luxury-lg {
+    box-shadow: 0 16px 48px -12px hsl(0 0% 0% / 0.8), 0 4px 16px -4px hsl(0 0% 0% / 0.6);
+  }
+  .shadow-gold-glow {
+    box-shadow: 0 0 28px -4px hsl(var(--gold) / 0.35);
+  }
+
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}

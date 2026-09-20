@@ -1,0 +1,1 @@
+INSERT INTO public.site_settings (key, value) VALUES ('notification_email', '{"email": "varietieswatchshop@gmail.com"}'::jsonb) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;

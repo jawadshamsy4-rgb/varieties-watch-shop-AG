@@ -1,0 +1,16 @@
+# Varieties Watch Shop
+
+> Original watches in Bangladesh — men's, women's, couple, and luxury watches with nationwide cash on delivery.
+
+Varieties Watch Shop sells authentic branded watches across Bangladesh from showrooms in Dhaka (Shantinagar) and Chattogram (Chawkbazar). Compare watch prices in BD and order online.
+
+## Pages
+
+- [Home](/): Featured watches, brands, and customer reviews.
+- [All Watches](/collection/all): Full collection across all categories.
+- [Men's Watches](/collection/mens): Men's watch prices in Bangladesh.
+- [Women's Watches](/collection/womens): Women's watch prices in Bangladesh.
+- [Couple Watches](/collection/couple): Couple watch sets.
+- [Brands](/brands): Browse by brand.
+- [Reviews](/reviews): Verified customer reviews.
+- [Track Order](/track-order): Look up an order by phone or order number.
