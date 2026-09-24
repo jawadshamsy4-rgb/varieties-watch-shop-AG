@@ -1,7 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import { checkAndInvalidateCache } from "./lib/version-check";
-import { purgeStaleAuthTokens } from "./lib/supabase-resilience";
 import App from "./App.tsx";
 import "./index.css";
 
@@ -30,11 +29,6 @@ const bootstrap = async () => {
     }
     return;
   }
-
-  // Drop any expired Supabase auth tokens before the SDK initializes.
-  // A stale token in localStorage was causing the app to hang on load
-  // for some browsers (worked fine in incognito where no token exists).
-  purgeStaleAuthTokens();
 
   const shouldRender = await checkAndInvalidateCache();
 

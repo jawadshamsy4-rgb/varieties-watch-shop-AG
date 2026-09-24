@@ -34,43 +34,10 @@ const clearStorageKeys = (storage: Storage | undefined) => {
  * works because there is no stale token to begin with.
  */
 export const purgeStaleAuthTokens = () => {
-  if (typeof window === "undefined") return;
-
-  const storages: Storage[] = [];
-  try { if (window.localStorage) storages.push(window.localStorage); } catch {}
-  try { if (window.sessionStorage) storages.push(window.sessionStorage); } catch {}
-
-  const nowSec = Math.floor(Date.now() / 1000);
-
-  for (const storage of storages) {
-    let keys: string[] = [];
-    try { keys = Object.keys(storage); } catch { continue; }
-
-    for (const key of keys) {
-      if (!key.startsWith("sb-") && !key.includes("supabase.auth.token")) continue;
-
-      let raw: string | null = null;
-      try { raw = storage.getItem(key); } catch { continue; }
-      if (!raw) continue;
-
-      try {
-        const parsed = JSON.parse(raw);
-        const expiresAt: number | undefined =
-          parsed?.expires_at ??
-          parsed?.currentSession?.expires_at ??
-          parsed?.session?.expires_at;
-
-        // If we can read an expiry and it's in the past (with 60s grace),
-        // the token is stale — drop it so the SDK starts clean.
-        if (typeof expiresAt === "number" && expiresAt + 60 < nowSec) {
-          storage.removeItem(key);
-        }
-      } catch {
-        // Malformed entry — safer to remove than to keep around.
-        try { storage.removeItem(key); } catch {}
-      }
-    }
-  }
+  // Retain persisted sessions. Supabase Auth handles background token refresh
+  // automatically using refresh_token. Deleting based on access token expires_at
+  // caused premature admin logouts.
+  return;
 };
 
 export const isSessionError = (error: unknown) => {
@@ -118,7 +85,7 @@ export const runWithSessionRecovery = async <T>(queryFn: () => Promise<T>) => {
   } catch (error) {
     if (!isSessionError(error)) throw error;
 
-    await resetClientSession();
+    // Retry once without destroying localStorage session
     return await queryFn();
   }
 };

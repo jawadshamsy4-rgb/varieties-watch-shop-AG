@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
+import { useAdminGuard } from "@/hooks/useAdminGuard";
 
 interface TrendingProduct {
   id: string;
@@ -25,19 +26,13 @@ const AdminTrendingProducts = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    const checkAdmin = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { navigate("/admin"); return; }
-      const { data } = await supabase.rpc("has_role", { _user_id: session.user.id, _role: "admin" });
-      if (!data) navigate("/admin");
-    };
-    checkAdmin();
-  }, [navigate]);
+  const { isAdmin } = useAdminGuard();
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (isAdmin) {
+      void fetchProducts();
+    }
+  }, [isAdmin]);
 
   const fetchProducts = async () => {
     setLoading(true);

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { LogOut, Mail, CheckCircle, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminGuard } from "@/hooks/useAdminGuard";
 
 const AdminDashboard = () => {
   const [email, setEmail] = useState("");
@@ -13,24 +14,16 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isAdmin } = useAdminGuard();
 
   useEffect(() => {
-    checkAdminAndFetch();
-  }, []);
+    if (isAdmin) {
+      fetchSettings();
+    }
+  }, [isAdmin]);
 
-  const checkAdminAndFetch = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { navigate("/admin"); return; }
-
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle();
-
-    if (!roleData) { await supabase.auth.signOut(); navigate("/admin"); return; }
-
+  const fetchSettings = async () => {
+    setLoading(true);
     const { data: setting } = await supabase
       .from("site_settings")
       .select("value")

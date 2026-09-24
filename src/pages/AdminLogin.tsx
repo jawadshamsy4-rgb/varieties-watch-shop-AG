@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,13 +6,50 @@ import { useToast } from "@/hooks/use-toast";
 import { withTimeout } from "@/lib/supabase-resilience";
 import { Eye, EyeOff } from "lucide-react";
 
+import { hasPersistedToken } from "@/hooks/useAdminGuard";
+
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    let mounted = true;
+
+    if (hasPersistedToken()) {
+      navigate("/admin/products", { replace: true });
+      return;
+    }
+
+    const checkActiveSession = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session?.user) {
+          if (mounted) {
+            navigate("/admin/products", { replace: true });
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("Session check error:", e);
+      } finally {
+        if (mounted) setCheckingSession(false);
+      }
+    };
+
+    void checkActiveSession();
+
+    return () => {
+      mounted = false;
+    };
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +91,14 @@ const AdminLogin = () => {
       setLoading(false);
     }
   };
+
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">

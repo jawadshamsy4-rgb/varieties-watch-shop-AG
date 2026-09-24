@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import AdminTabNav from "@/components/AdminTabNav";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminGuard } from "@/hooks/useAdminGuard";
 import {
   Dialog,
   DialogContent,
@@ -71,11 +72,7 @@ const AdminHeroSlides = () => {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) navigate("/admin");
-    });
-  }, [navigate]);
+  useAdminGuard();
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["hero-slides"] });

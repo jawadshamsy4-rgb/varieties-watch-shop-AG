@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { SITE_CATEGORIES } from "@/data/categories";
 import { useBrands } from "@/hooks/useBrands";
+import { useAdminGuard } from "@/hooks/useAdminGuard";
 
 interface VariantInput {
   size: string;
@@ -98,18 +99,13 @@ const AdminProducts = () => {
   const { toast } = useToast();
   const { data: brandList = [] } = useBrands(false);
 
-  useEffect(() => {
-    checkAdminAndFetch();
-  }, []);
+  const { loading: authLoading, isAdmin } = useAdminGuard();
 
-  const checkAdminAndFetch = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { navigate("/admin"); return; }
-    const { data: roleData } = await supabase
-      .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
-    if (!roleData) { await supabase.auth.signOut(); navigate("/admin"); return; }
-    await fetchProducts();
-  };
+  useEffect(() => {
+    if (isAdmin) {
+      fetchProducts();
+    }
+  }, [isAdmin]);
 
   const fetchProducts = async () => {
     setLoading(true);

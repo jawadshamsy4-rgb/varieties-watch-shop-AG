@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, Download, Package, Trash2, Search, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { withTimeout, isSessionError, resetClientSession } from "@/lib/supabase-resilience";
+import { useAdminGuard } from "@/hooks/useAdminGuard";
 
 const STATUS_OPTIONS = ["Pending", "Confirmed", "Processing", "Shipped", "Delivered", "Cancelled"];
 const FILTER_TABS = ["All", "Pending", "Processing", "Confirmed", "Shipped", "Delivered", "Cancelled"] as const;
@@ -37,56 +37,31 @@ const AdminOrders = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    let cancelled = false;
-    void checkAdminAndFetch(cancelled);
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { isAdmin } = useAdminGuard();
 
-  const checkAdminAndFetch = async (cancelled: boolean) => {
+  useEffect(() => {
+    if (isAdmin) {
+      void fetchOrders();
+    }
+  }, [isAdmin]);
+
+  const fetchOrders = async () => {
     setLoading(true);
     setLoadError(null);
     try {
-      // Use getSession (sync from storage) instead of getUser (network call that can hang)
-      const { data: { session } } = await withTimeout(supabase.auth.getSession(), 10000, "Auth check timed out");
-      const user = session?.user;
-      if (!user) { if (!cancelled) navigate("/admin"); return; }
+      const { data, error } = await supabase
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      const { data: roleData, error: roleError } = await withTimeout(
-        Promise.resolve(supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle()),
-        15000,
-        "Role check timed out",
-      ) as any;
-      if (roleError) throw roleError;
-      if (!roleData) {
-        await supabase.auth.signOut();
-        if (!cancelled) navigate("/admin");
-        return;
-      }
-
-      const { data, error } = await withTimeout(
-        Promise.resolve(supabase.from("orders").select("*").order("created_at", { ascending: false })),
-        20000,
-        "Loading orders timed out",
-      ) as any;
-      if (cancelled) return;
       if (error) throw error;
       setOrders((data as Order[]) || []);
     } catch (err: any) {
-      if (cancelled) return;
       const msg = err?.message || "Something went wrong";
-      if (isSessionError(err)) {
-        await resetClientSession();
-        navigate("/admin");
-        return;
-      }
       setLoadError(msg);
       toast({ title: "Failed to load orders", description: msg, variant: "destructive" });
     } finally {
-      if (!cancelled) setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -202,7 +177,7 @@ const AdminOrders = () => {
         <div className="text-center space-y-4 max-w-sm px-6">
           <p className="font-display text-xl text-foreground">Could not load orders</p>
           <p className="font-body text-[13px] text-muted-foreground">{loadError}</p>
-          <Button variant="cta-outline" size="sm" onClick={() => checkAdminAndFetch(false)}>
+          <Button variant="cta-outline" size="sm" onClick={() => void fetchOrders()}>
             Retry
           </Button>
         </div>

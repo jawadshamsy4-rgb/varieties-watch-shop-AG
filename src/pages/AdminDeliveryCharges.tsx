@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import AdminTabNav from "@/components/AdminTabNav";
 import { supabase } from "@/integrations/supabase/client";
-import { withTimeout } from "@/lib/supabase-resilience";
 import { Button } from "@/components/ui/button";
 import { LogOut, Save, Truck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminGuard } from "@/hooks/useAdminGuard";
 
 const AdminDeliveryCharges = () => {
   const [insideAmount, setInsideAmount] = useState(60);
@@ -17,34 +17,25 @@ const AdminDeliveryCharges = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const { isAdmin } = useAdminGuard();
+
   useEffect(() => {
-    checkAdminAndFetch();
-  }, []);
+    if (isAdmin) {
+      void fetchSettings();
+    }
+  }, [isAdmin]);
 
-  const checkAdminAndFetch = async () => {
+  const fetchSettings = async () => {
     try {
-      const { data: { session } } = await withTimeout(
-        supabase.auth.getSession(),
-        5000,
-        "Auth check timed out"
-      );
-      if (!session?.user) { navigate("/admin"); return; }
-
-      const { data } = await withTimeout(
-        Promise.resolve(
-          supabase
-            .from("site_settings")
-            .select("key, value")
-            .in("key", [
-              "delivery_charge_inside",
-              "delivery_charge_outside",
-              "delivery_label_inside",
-              "delivery_label_outside"
-            ])
-        ),
-        10000,
-        "Loading settings timed out"
-      );
+      const { data } = await supabase
+        .from("site_settings")
+        .select("key, value")
+        .in("key", [
+          "delivery_charge_inside",
+          "delivery_charge_outside",
+          "delivery_label_inside",
+          "delivery_label_outside"
+        ]);
 
       if (data) {
         for (const row of data) {

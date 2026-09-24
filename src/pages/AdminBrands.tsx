@@ -16,26 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { useBrands, type Brand } from "@/hooks/useBrands";
 import { useQueryClient } from "@tanstack/react-query";
-import { withTimeout, resetClientSession } from "@/lib/supabase-resilience";
-
-// Read the persisted Supabase session straight from localStorage. This
-// avoids supabase.auth.getSession(), which can hang for many seconds when
-// another tab is holding the cross-tab auth lock.
-const readPersistedSession = (): { expires_at?: number; access_token?: string } | null => {
-  try {
-    for (const key of Object.keys(localStorage)) {
-      if (!key.startsWith("sb-") || !key.endsWith("-auth-token")) continue;
-      const raw = localStorage.getItem(key);
-      if (!raw) continue;
-      const parsed = JSON.parse(raw);
-      const session = parsed?.currentSession ?? parsed?.session ?? parsed;
-      if (session?.access_token) return session;
-    }
-  } catch {
-    // ignore
-  }
-  return null;
-};
+import { useAdminGuard } from "@/hooks/useAdminGuard";
 
 interface BrandForm {
   label: string;
@@ -80,31 +61,7 @@ const AdminBrands = () => {
     setSubmitting(false);
   };
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        // Read the current session WITHOUT touching the cross-tab auth lock.
-        // supabase.auth.getSession() can hang indefinitely when another tab
-        // is holding the navigator.locks "sb-*-auth-token" lock (e.g., during
-        // its own auto-refresh). Reading directly from localStorage avoids
-        // the lock entirely and never hangs.
-        const session = readPersistedSession();
-        if (cancelled) return;
-
-        if (!session) {
-          navigate("/admin");
-          return;
-        }
-      } catch {
-        await resetClientSession();
-        if (!cancelled) navigate("/admin");
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [navigate]);
+  useAdminGuard();
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["brands"] });
